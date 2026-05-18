@@ -9,28 +9,32 @@ st.set_page_config(
     layout="centered",
 )
 
+
 @st.cache_resource
 def load_model():
-    return tf.keras.models.load_model("/content/modelo-cnn-deepfake-identification-ep96.h5")
+    return tf.keras.models.load_model("../modelo-EfficientNet/saved_model/deepfake_model_EfficientNet.keras")
+
 
 model = load_model()
 
 CLASSES = ["FAKE", "REAL"]
 INPUT_SIZE = (256, 256)
 
+
 def preprocessar(imagem: Image.Image) -> np.ndarray:
     """Pré-processa a imagem antes de enviá-la ao modelo."""
     img = imagem.convert("RGB")
     img = img.resize(INPUT_SIZE)
-    
+
     # Converte para float32
     arr = np.array(img, dtype=np.float32)
-    
-    arr = arr / 255.0 
-    
+
+    arr = arr / 255.0
+
     # Adiciona a dimensão do batch (1, 256, 256, 3)
     arr = np.expand_dims(arr, axis=0)
     return arr
+
 
 def prever(imagem: Image.Image):
     """Executa a inferência e retorna o resultado formatado."""
@@ -52,7 +56,6 @@ def prever(imagem: Image.Image):
     return classe_pred, confianca, [prob_fake, prob_real]
 
 
-
 # interface
 st.title("🖼️ Classificador de Deepfakes")
 st.write(
@@ -69,7 +72,8 @@ fonte = st.radio(
 
 imagem_pil = None
 if fonte == "Upload de arquivo":
-    arquivo = st.file_uploader("Selecione uma imagem", type=["jpg", "jpeg", "png", "webp"])
+    arquivo = st.file_uploader("Selecione uma imagem", type=[
+                               "jpg", "jpeg", "png", "webp"])
     if arquivo is not None:
         imagem_pil = Image.open(arquivo)
 else:
@@ -102,7 +106,7 @@ if imagem_pil is not None:
         for nome, prob in zip(CLASSES, probs):
             st.progress(
                 float(prob),
-                text=f"{nome}: {prob * 100:.1f}%", 
+                text=f"{nome}: {prob * 100:.1f}%",
             )
 else:
     st.info("Aguardando imagem...")
